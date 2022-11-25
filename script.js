@@ -5,6 +5,7 @@ window.addEventListener("load", function () {
   canvas.height = 720;
   let enemies = [];
   let score = 0;
+  let gameOver = false;
 
   class InputHandler {
     constructor() {
@@ -57,11 +58,6 @@ window.addEventListener("load", function () {
     }
 
     draw(context) {
-        context.strokeStyle = 'white';
-        context.strokeRect(this.x, this.y, this.width, this.height);
-        context.beginPath();
-        context.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
-        context.stroke();
       context.drawImage(
         this.image,
         this.frameX * this.width,
@@ -75,6 +71,15 @@ window.addEventListener("load", function () {
       );
     }
     update(input, deltaTime, enemies) {
+        //collision detection
+        enemies.forEach(enemy => {
+            const dx = (enemy.x + enemy.width/2) - (this.x + this.width/2);
+            const dy = (enemy.y + enemy.height/2) - (this.y + this.height/2);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < enemy.width/2 + this.width/2){
+                gameOver = true;
+            }
+        })
       //animation
       if (this.frameTimer > this.frameInterval) {
         if (this.frameX >= this.maxFrame) this.frameX = 0;
@@ -163,11 +168,6 @@ window.addEventListener("load", function () {
       this.markedForDeletion = false;
     }
     draw(context) {
-        context.strokeStyle = 'white';
-        context.strokeRect(this.x, this.y, this.width, this.height);
-        context.beginPath();
-        context.arc(this.x + this.width/2, this.y + this.height/2, this.width/2, 0, Math.PI * 2);
-        context.stroke();
      context.drawImage(
         this.image,
         this.frameX * this.width,
@@ -214,9 +214,17 @@ window.addEventListener("load", function () {
   function displayStatusText(context) {
     context.font = "40px Helvetica";
     context.fillStyle = "black";
-    context.fillText("Score " + score, 20, 50);
+    context.fillText("Score: " + score, 20, 50);
     context.fillStyle = "white";
-    context.fillText("Score " + score, 22, 52);
+    context.fillText("Score: " + score, 22, 52);
+    if (gameOver){
+        context.textAlligh = 'center';
+        context.fillStyle = 'black';
+        context.fillText("GAME OVER, try again", canvas.width/4, 350);
+        context.fillStyle = 'white';
+        context.fillText("GAME OVER, try again", canvas.width/4 + 2, 352);
+
+    }
   }
 
   const input = new InputHandler();
@@ -239,7 +247,7 @@ window.addEventListener("load", function () {
     player.update(input, deltaTime, enemies);
     handleEnemies(deltaTime);
     displayStatusText(ctx);
-    requestAnimationFrame(animate);
+    if (!gameOver) requestAnimationFrame(animate);
   }
   animate(0);
 });
